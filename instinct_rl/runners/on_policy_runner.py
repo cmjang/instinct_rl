@@ -70,7 +70,11 @@ class OnPolicyRunner:
         ).to(self.device)
 
         alg_class_name = self.alg_cfg.pop("class_name")
-        alg_class = importlib.import_module() if ":" in alg_class_name else getattr(algorithms, alg_class_name)
+        if ":" in alg_class_name:
+            module_name, class_name = alg_class_name.split(":")
+            alg_class = getattr(importlib.import_module(module_name), class_name)
+        else:
+            alg_class = getattr(algorithms, alg_class_name)
         self.alg: algorithms.PPO = alg_class(actor_critic, device=self.device, **self.alg_cfg)
 
         self.num_steps_per_env = self.cfg["num_steps_per_env"]
@@ -400,8 +404,6 @@ class OnPolicyRunner:
             for k, v in locs["losses"].items():
                 log_string += f"""{k:>{pad}} {v.item():.4f}\n"""
             log_string += (
-                f"""{'Value function loss:':>{pad}} {locs["losses"]['value_loss']:.4f}\n"""
-                f"""{'Surrogate loss:':>{pad}} {locs["losses"]['surrogate_loss']:.4f}\n"""
                 f"""{'Mean action noise std:':>{pad}} {mean_std.item():.2f}\n"""
                 # f"""{'Mean reward/step:':>{pad}} {locs['mean_reward']:.2f}\n"""
                 # f"""{'Mean episode length/episode:':>{pad}} {locs['mean_trajectory_length']:.2f}\n"""
