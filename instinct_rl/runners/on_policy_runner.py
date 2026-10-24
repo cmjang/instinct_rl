@@ -92,13 +92,16 @@ class OnPolicyRunner:
             normalizer.to(self.device)
             self.normalizers[obs_group_name] = normalizer
 
-        # init storage and model
+        # init storage and model. The env and the normalizers are given for the algorithms that need them (e.g.
+        # SuperMimic builds its task model from the env and normalizes the imagined observations); the others ignore them.
         self.alg.init_storage(
             self.env.num_envs,
             self.num_steps_per_env,
             obs_format=obs_format,
             num_actions=self.env.num_actions,
             num_rewards=self.env.num_rewards,
+            env=self.env,
+            normalizers=self.normalizers,
         )
 
         # Log
